@@ -1,0 +1,24 @@
+{
+  "name": "and",
+  "children": [
+    {"name": "medical_license"},
+    {"name": "or",
+        "children": [
+            {"name": "speciality_cardiology"},
+            {"name": "speciality_internal_medicine"}
+        ]
+    },
+    {"name": "hospital_affiliation"},
+    {"name": "or",
+        "children": [
+            {"name": "emergency_access"},
+            {"name": "and",
+                "children": [
+                    {"name": "patient_consent"},
+                    {"name": "scheduled_appointment"}
+                ]
+            }
+        ]
+    }
+  ]
+}

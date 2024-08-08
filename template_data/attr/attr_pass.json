@@ -1,0 +1,11 @@
+{
+    "attributes": [
+        {"name": "name", "value": "John Smith"},
+        {"name": "date of birth", "value": "1944-08-15"},
+        {"name": "medical_license", "value": "ML123456"},
+        {"name": "speciality_cardiology", "value": "certified"},
+        {"name": "hospital_affiliation", "value": "Central Hospital"},
+        {"name": "patient_consent", "value": "granted"},
+        {"name": "scheduled_appointment", "value": "2023-08-15T10:00:00Z"}
+    ]
+}

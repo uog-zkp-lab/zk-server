@@ -1,0 +1,7 @@
+{
+    "attributes": [
+        {"name": "medical_license", "value": "ML789012"},
+        {"name": "speciality_neurology", "value": "certified"},
+        {"name": "hospital_affiliation", "value": "City Medical Center"}
+    ]
+}
