@@ -3,15 +3,19 @@ use alloy_sol_types::{sol, SolInterface, SolValue};
 use anyhow::{Context, Result};
 use clap::Parser;
 use ethers::prelude::*;
-use methods::{CHECK_POLICY_ELF, CHECK_POLICY_ID, IS_EVEN_ELF};
+use methods::CHECK_POLICY_ELF;
 use risc0_ethereum_contracts::groth16;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 use std::fmt::Debug;
 
 // `IEvenNumber` interface automatically generated via the alloy `sol!` macro.
 sol! {
-    interface IEvenNumber {
-        function set(uint256 x, bytes calldata seal);
+    interface IAccessToken {
+        function mintAccessTokenForDP(
+            bytes calldata seal,
+            uint256 tokenId,
+            uint256 ctCid
+        );
     }
 }
 
@@ -75,18 +79,9 @@ struct Args {
     /// Application's contract address on Ethereum
     #[clap(long)]
     contract: String,
-
-    /// The input to provide to the guest binary
-    #[clap(short, long)]
-    input: U256,
 }
 
 fn main() -> Result<()> {
-    // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
-    // tracing_subscriber::fmt()
-    //     .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
-    //     .init();
-
     env_logger::init();
     // Parsing CLI Arguments
     let args = Args::parse();
@@ -99,21 +94,20 @@ fn main() -> Result<()> {
         &args.contract,
     )?;
 
-
-    // let env = ExecutorEnv::builder().write_slice(&input).build()?;
-
-    // let receipt = default_prover()
-    //     .prove_with_ctx(
-    //         env,
-    //         &VerifierContext::default(),
-    //         IS_EVEN_ELF,
-    //         &ProverOpts::groth16(),
-    //     )?
-    //     .receipt;
+    // TODO: obtain all these from DP side (using an api)
+    //       zkserver gets
+    //          1. dp_attributes
+    //          2. tokenId
+    //       and it is able to read policy and ct_cid from smart contract.
+    //       ct_cid has to send into guest code to make the commitment
+    //       and ct_cid will be send to verifier to make sure
+    //       "The ct_cid that send into guest code == the one send to blockchain"
 
     let policy_str = include_str!("../../../template_data/policy.json");
     let dp_attr_str = include_str!("../../../template_data/attr/attr_pass.json");
     // let dp_attr_str = include_str!("../../../template_data/attr/attr_fail.json");
+    let token_id = <U256>::from(12345_u16);
+    let _ct_cid = (1234).abi_encode();
 
     // send policy and attributes strings into the execute env
     let env = ExecutorEnv::builder()
@@ -121,6 +115,7 @@ fn main() -> Result<()> {
         .unwrap()
         .write(&dp_attr_str)
         .unwrap()
+        .write_slice(&_ct_cid)
         .build()
         .unwrap();
 
@@ -128,64 +123,37 @@ fn main() -> Result<()> {
     let prover = default_prover();
 
     // Produce a receipt by proving the specified ELF binary.
-    let receipt = prover.prove(env, CHECK_POLICY_ELF).unwrap().receipt;
-    let output: String = receipt.journal.decode().unwrap();
+    let receipt = prover
+        .prove_with_ctx(
+            env,
+            &VerifierContext::default(),
+            CHECK_POLICY_ELF,
+            &ProverOpts::groth16(),
+        )?
+        .receipt;
 
-    println!("output data: {:?}", output);
+    let seal = groth16::encode(receipt.inner.groth16()?.seal.clone())?;
+
+    // extracting the journal from the receipt
+    let journal = receipt.journal.bytes.clone();
+
+    // after receive the proof, decodes the journal and extract
+    // the verified `ct_cid`. This make sure the `ct_cid`
+    // sending to the blockchain consist with the one send to
+    // prover
+    let ct_cid = U256::abi_decode(&journal, true).context("decoding journal data")?;
+
+    let calldata = IAccessToken::IAccessTokenCalls::mintAccessTokenForDP(
+        IAccessToken::mintAccessTokenForDPCall {
+            seal: seal.into(),
+            tokenId: token_id,
+            ctCid: ct_cid,
+        },
+    )
+    .abi_encode();
+
+    let runtime = tokio::runtime::Runtime::new()?;
+    runtime.block_on(tx_sender.send(calldata))?;
 
     Ok(())
 }
-
-// fn main() -> Result<()> {
-//     env_logger::init();
-//     // Parse CLI Arguments: The application starts by parsing command-line arguments provided by the user.
-//     let args = Args::parse();
-
-//     // Create a new transaction sender using the parsed arguments.
-//     let tx_sender = TxSender::new(
-//         args.chain_id,
-//         &args.rpc_url,
-//         &args.eth_wallet_private_key,
-//         &args.contract,
-//     )?;
-
-//     let env = ExecutorEnv::builder().write_slice(&input).build()?;
-
-//     let receipt = default_prover()
-//         .prove_with_ctx(
-//             env,
-//             &VerifierContext::default(),
-//             IS_EVEN_ELF,
-//             &ProverOpts::groth16(),
-//         )?
-//         .receipt;
-
-//     // Encode the seal with the selector.
-//     let seal = groth16::encode(receipt.inner.groth16()?.seal.clone())?;
-
-//     // Extract the journal from the receipt.
-//     let journal = receipt.journal.bytes.clone();
-
-//     // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
-//     // the verified number. This ensures that the number being submitted to the blockchain matches
-//     // the number that was verified off-chain.
-//     let x = U256::abi_decode(&journal, true).context("decoding journal data")?;
-
-//     // Construct function call: Using the IEvenNumber interface, the application constructs
-//     // the ABI-encoded function call for the set function of the EvenNumber contract.
-//     // This call includes the verified number, the post-state digest, and the seal (proof).
-//     let calldata = IEvenNumber::IEvenNumberCalls::set(IEvenNumber::setCall {
-//         x,
-//         seal: seal.into(),
-//     })
-//     .abi_encode();
-
-//     // Initialize the async runtime environment to handle the transaction sending.
-//     let runtime = tokio::runtime::Runtime::new()?;
-
-//     // Send transaction: Finally, the TxSender component sends the transaction to the Ethereum blockchain,
-//     // effectively calling the set function of the EvenNumber contract with the verified number and proof.
-//     runtime.block_on(tx_sender.send(calldata))?;
-
-//     Ok(())
-// }
