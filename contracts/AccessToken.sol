@@ -30,7 +30,7 @@ contract AccessToken is ERC1155, ERC1155Burnable {
         string aFailCid;
     }
 
-    // modifiers
+    /// modifiers
     modifier onlyTokenOwner(uint256 tokenId) {
         require(tokenOwner[tokenId] == msg.sender, "Only Token Owner is able to access to the token");
         _;
@@ -66,6 +66,7 @@ contract AccessToken is ERC1155, ERC1155Burnable {
     ) public {
         uint256 tokenId = uint256(keccak256(abi.encodePacked(address(msg.sender))));
         require(!checkIfTokenIsCreated(tokenId), "This Token Id Has Been Created.");
+
         tokenCreated[tokenId] = true;
         tokenOwner[tokenId] = msg.sender;
         setIpfsData(tokenId, policyString, ctCid, aPassCid, aFailCid);
@@ -75,11 +76,12 @@ contract AccessToken is ERC1155, ERC1155Burnable {
     function mintAccessTokenForDP(
         bytes calldata seal,
         uint256 tokenId,
-        string calldata cid
+        uint256 ctCid
     ) public {
         // should pass the verification first
-        require(checkCidEquality(tokenId, cid), "TokenId and cid does not match!");
-        bytes memory journal = abi.encode("");
+        // require(checkIfTokenIsCreated(tokenId), "TokenId has not been created");
+        // require(checkCidEquality(tokenId, ctCid), "TokenId and cid does not match!");
+        bytes memory journal = abi.encode(ctCid);
         verifier.verify(seal, imageId, sha256(journal));
         _mint(msg.sender, tokenId, 1, "");
     }
