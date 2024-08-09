@@ -1,12 +1,10 @@
-use std::io::Read;
 use alloy_primitives::U256;
 use alloy_sol_types::SolValue;
-use risc0_zkvm::guest::env;
+use rabe::utils::policy::pest::{parse, PolicyLanguage::JsonPolicy, PolicyType};
 use rabe::utils::tools::traverse_policy;
-use rabe::utils::policy::pest::{
-    parse, PolicyLanguage::JsonPolicy, PolicyType,
-};
+use risc0_zkvm::guest::env;
 use serde_json;
+use std::io::Read;
 
 fn extract_attribute_names(attrs: &serde_json::Value) -> Vec<String> {
     attrs
