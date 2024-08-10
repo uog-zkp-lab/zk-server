@@ -28,8 +28,11 @@ fn main() {
     let dp_attr_str: String = env::read();
     let mut ct_cid_bytes = Vec::<u8>::new();
     env::stdin().read_to_end(&mut ct_cid_bytes).unwrap();
-    let _ct_cid = <U256>::abi_decode(&ct_cid_bytes, true).unwrap();
+    
+    let ct_cid = <U256>::abi_decode(&ct_cid_bytes, true).unwrap();
 
+    println!("ct_cid: {:?}", ct_cid);
+    
     // can use serialized_parse to print the policy
     let policy_parsed = parse(&policy_str, JsonPolicy).unwrap();
 
@@ -47,5 +50,5 @@ fn main() {
         panic!("The Attributes Does Not Satisfy the Policy!!!");
     }
 
-    env::commit_slice(_ct_cid.abi_encode().as_slice());
+    env::commit_slice(ct_cid.abi_encode().as_slice());
 }

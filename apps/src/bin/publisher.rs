@@ -107,7 +107,7 @@ fn main() -> Result<()> {
     let dp_attr_str = include_str!("../../../template_data/attr/attr_pass.json");
     // let dp_attr_str = include_str!("../../../template_data/attr/attr_fail.json");
     let token_id = <U256>::from(12345_u16);
-    let _ct_cid = (1234).abi_encode();
+    let ct_cid_bytes = (1234).abi_encode();
 
     // send policy and attributes strings into the execute env
     let env = ExecutorEnv::builder()
@@ -115,7 +115,7 @@ fn main() -> Result<()> {
         .unwrap()
         .write(&dp_attr_str)
         .unwrap()
-        .write_slice(&_ct_cid)
+        .write_slice(&ct_cid_bytes)
         .build()
         .unwrap();
 
