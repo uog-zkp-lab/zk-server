@@ -6,6 +6,12 @@ Before the zkServer is used, it has to be deployed.
 
 The ELF binary that represent the instructions inside `guest code` would be generated. And a unique identifier called `ImageId` would also be generated in the cargo building phase. `ImageId` represents guest code that zkServer uses, which means if anyone wants to generate a fake proof using another zkServer with the incorrect code, it will not pass the verification due to the incorrect `ImageId`.
 
+## Structure
+
+![bonsai_api_diagram](./images/risc0-foundry-template.png)
+
+The current structure is based on `risc0-foundry-template`. However, we want to compile this into `wasm` and integrate with a `NEXTJS` web app.
+
 ---
 
 ## In the flow of ABE system
@@ -146,3 +152,7 @@ And check the balance again:
 ```shell
 cast call --rpc-url http://localhost:8545 ${ACCESS_TOKEN_ADDR:?} 'getBalance(address,uint256)' 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 12345
 ```
+
+The result looks like:
+
+![result](./images/result.png)
