@@ -98,6 +98,17 @@ contract AccessTokenDeploy is Script {
         AccessToken accessToken = new AccessToken(verifier);
         console2.log("Deployed AccessToken to", address(accessToken));
 
+        sendEthToAddress(0x2b3c5dd17962681460E4985A7C2eCAF9A6D77B9F, 10 ether);
         vm.stopBroadcast();
+    }
+
+    function sendEthToAddress(address _to, uint256 _amount) internal {
+        require(_to != address(0), "Invalid address");
+        require(_amount > 0, "Amount must be greater than 0");
+        require(address(this).balance >= _amount, "Insufficient balance");
+
+        (bool success, ) = _to.call{value: _amount}("");
+        require(success, "ETH transfer failed");
+        console2.log("Sent", _amount, "wei to", _to);
     }
 }
