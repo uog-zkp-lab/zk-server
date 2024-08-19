@@ -97,7 +97,6 @@ contract AccessTokenDeploy is Script {
         // Deploy the application contract.
         AccessToken accessToken = new AccessToken(verifier);
         console2.log("Deployed AccessToken to", address(accessToken));
-
         vm.stopBroadcast();
     }
 }
