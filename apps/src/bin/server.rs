@@ -47,7 +47,7 @@ async fn handle_generate_proof(request: ProofRequest) -> Result<impl Reply, Reje
     println!("Generating proof...");
     let result = timeout(
         Duration::from_secs(180), // timeout after 3 min
-        // the reason using spawn_blocking is because generate_proof 
+        // the reason using spawn_blocking is because generate_proof
         // is using another async api to get the proof.
         tokio::task::spawn_blocking(move || {
             prover::generate_proof(
