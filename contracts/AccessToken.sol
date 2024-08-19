@@ -23,10 +23,13 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
     mapping (uint256 tokenId => string cid) public tokenIpfsHash;
     mapping (uint256 tokenId => address owner) public tokenOwner;
     mapping (address dpAddr => bytes32 attributesHash) internal dpAttrHash;
+    mapping (address doAddr => uint256[] tokenIds) private _ownerTokens;
 
     event TokenCreated(uint256 tokenId, address owner);
     event AccessTokenMinted(address indexed dpAddress, uint256 tokenId, bytes seal);
     event DPRegistered(address indexed dpAddress, bytes32 attributesHash);
+
+    uint256 private _tokenIdCounter;
 
     /// modifiers
     modifier onlyTokenOwner(uint256 tokenId) {
@@ -40,7 +43,7 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
     }
 
     /// @dev A function for token owners to set the cid of each token 
-    function setIpfsData(
+    function setIpfsHash(
         uint256 tokenId,
         string memory cid
     ) public onlyTokenOwner(tokenId) {
@@ -51,10 +54,14 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
     function createToken(
         string memory cid
     ) public {
-        uint256 tokenId = uint256(keccak256(abi.encodePacked(address(msg.sender))));
+        _tokenIdCounter++;
+        uint256 tokenId = uint256(keccak256(abi.encodePacked(msg.sender, _tokenIdCounter)));
         require(tokenOwner[tokenId] == address(0), "This Token Id Has Been Created.");
+        
         tokenOwner[tokenId] = msg.sender;
-        setIpfsData(tokenId, cid);
+        _ownerTokens[msg.sender].push(tokenId);
+
+        setIpfsHash(tokenId, cid);
         emit TokenCreated(tokenId, msg.sender);
     }
 
@@ -95,6 +102,13 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
         return balanceOf(msg.sender, tokenId);
     }
 
+
+    /// @dev get all tokens for an owner
+    function getOwnerTokens(address owner) public view returns (uint256[] memory) {
+        return _ownerTokens[owner];
+    }
+
+    /// helper functions
     function checkCidEquality(
         uint256 tokenId, 
         string memory cid
