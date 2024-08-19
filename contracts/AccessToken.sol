@@ -65,6 +65,11 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
         emit TokenCreated(tokenId, msg.sender);
     }
 
+    /// @dev a function to get cid of a token
+    function getCid(uint256 tokenId) public view returns (string memory cid) {
+        return tokenIpfsHash[tokenId];
+    }
+
     /// @dev data processor register with their attributes
     function registerDP(
         bytes32 attributesHash
@@ -94,12 +99,11 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
     /// @dev get balance for data processor
     function getDPBalance(
         uint256 tokenId,
-        bytes32 messageHash,
         bytes memory signature
-    ) public view returns (uint256) {
-        address signer = ECDSA.recover(messageHash, signature);
+    ) public view returns (bool) {
+        address signer = ECDSA.recover(keccak256(abi.encodePacked(tokenId)), signature);
         require(signer == msg.sender, "Invalid signature"); // only the holder can check the balance
-        return balanceOf(msg.sender, tokenId);
+        return balanceOf(msg.sender, tokenId) > 0;
     }
 
 
