@@ -5,23 +5,7 @@ use rabe::utils::tools::traverse_policy;
 use risc0_zkvm::guest::env;
 use serde_json;
 use std::io::Read;
-
-fn extract_attribute_names(attrs: &serde_json::Value) -> Vec<String> {
-    attrs
-        .get("attributes")
-        .and_then(|a| a.as_array())
-        .map(|attributes| {
-            attributes
-                .iter()
-                .filter_map(|attr| {
-                    attr.get("name")
-                        .and_then(serde_json::Value::as_str)
-                        .map(String::from)
-                })
-                .collect()
-        })
-        .unwrap_or_default()
-}
+use guests::utils::extract_attribute_names;
 
 fn main() {
     let policy_str: String = env::read();
@@ -30,8 +14,6 @@ fn main() {
     env::stdin().read_to_end(&mut ct_cid_bytes).unwrap();
     
     let ct_cid = <U256>::abi_decode(&ct_cid_bytes, true).unwrap();
-
-    println!("ct_cid: {:?}", ct_cid);
     
     // can use serialized_parse to print the policy
     let policy_parsed = parse(&policy_str, JsonPolicy).unwrap();
