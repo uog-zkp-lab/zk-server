@@ -1,29 +1,30 @@
+use std::io::Read;
 use alloy_primitives::U256;
 use alloy_sol_types::SolValue;
-use rabe::utils::policy::pest::{parse, PolicyLanguage::JsonPolicy, PolicyType};
+use rabe::utils::policy::pest::{parse, serialize_policy, PolicyLanguage::HumanPolicy, PolicyType};
 use rabe::utils::tools::traverse_policy;
 use risc0_zkvm::guest::env;
-use serde_json;
-use std::io::Read;
-use guests::utils::extract_attribute_names;
+use guests::utils;
 
 fn main() {
     let policy_str: String = env::read();
     let dp_attr_str: String = env::read();
-    let mut ct_cid_bytes = Vec::<u8>::new();
-    env::stdin().read_to_end(&mut ct_cid_bytes).unwrap();
-    
-    let ct_cid = <U256>::abi_decode(&ct_cid_bytes, true).unwrap();
-    
+
+    // read cid_bytes and recover it from abi.encoded bytes
+    let mut input_bytes = Vec::<u8>::new();
+    env::stdin().read_to_end(&mut input_bytes).unwrap();
+    let token_id = <U256>::abi_decode(&input_bytes, true).unwrap();
+
+    println!("policy_str: {:?}", policy_str);
+    println!("dp_attr_str: {:?}", dp_attr_str);
+    println!("recovered_token_id: {:?}", token_id);
+
     // can use serialized_parse to print the policy
-    let policy_parsed = parse(&policy_str, JsonPolicy).unwrap();
+    let policy_parsed = parse(&policy_str, HumanPolicy).unwrap();
+    println!("policy_parsed: {:?}", serialize_policy(&policy_parsed, HumanPolicy, None));
 
-    let dp_attrs: serde_json::Value =
-        serde_json::from_str(&dp_attr_str).expect("JSON was not well-formatted");
-
-    // converting the attributes into Vec<String>
-    let attr_vector = extract_attribute_names(&dp_attrs);
-    println!("attributes vector: {:?}\n\n", attr_vector);
+    let attr_vector = utils::extract_attributes(&dp_attr_str);
+    println!("attr_vector: {:?}", attr_vector);
 
     let satisfied = traverse_policy(&attr_vector, &policy_parsed, PolicyType::Leaf);
     println!("Attributes satisfy the policy: {}", satisfied);
@@ -32,5 +33,5 @@ fn main() {
         panic!("The Attributes Does Not Satisfy the Policy!!!");
     }
 
-    env::commit_slice(ct_cid.abi_encode().as_slice());
+    env::commit_slice(token_id.abi_encode().as_slice());
 }
