@@ -1,6 +1,5 @@
 {
-    "policy": "{\n  \"name\": \"and\",\n  \"children\": [\n    {\"name\": \"medical_license\"},\n    {\"name\": \"or\",\n        \"children\": [\n            {\"name\": \"speciality_cardiology\"},\n            {\"name\": \"speciality_internal_medicine\"}\n        ]\n    },\n    {\"name\": \"hospital_affiliation\"},\n    {\"name\": \"or\",\n        \"children\": [\n            {\"name\": \"emergency_access\"},\n            {\"name\": \"and\",\n                \"children\": [\n                    {\"name\": \"patient_consent\"},\n                    {\"name\": \"scheduled_appointment\"}\n                ]\n            }\n        ]\n    }\n  ]\n}",
-    "attributes": "{\"attributes\":[{\"name\":\"name\",\"value\":\"John Smith\"},{\"name\":\"date of birth\",\"value\":\"1944-08-15\"},{\"name\":\"medical_license\",\"value\":\"ML123456\"},{\"name\":\"speciality_cardiology\",\"value\":\"certified\"},{\"name\":\"hospital_affiliation\",\"value\":\"Central Hospital\"},{\"name\":\"patient_consent\",\"value\":\"granted\"},{\"name\":\"scheduled_appointment\",\"value\":\"2023-08-15T10:00:00Z\"}]}",
-    "token_id": 12345,
-    "ct_cid": 67890
+    "attributes": "[{\"Role\": \"Doctor\"},{\"Department\": \"Oncology\"},{\"medical_license\": \"ML123456\"},{\"speciality_cardiology\": \"certified\"},{\"hospital_affiliation\": \"Central Hospital\"},{\"patient_consent\": \"granted\"},{\"scheduled_appointment\": \"2023-08-15T10:00:00Z\"}]",
+    "token_id": 12345031948137413483,
+    "cid": "bafkreid6dd654emjzhfufpw6n3oantzk2kzfwckqnjnlcm7wk7gd46y734"
 }
