@@ -10,7 +10,7 @@ riscZeroVerifierAddress = "0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187"
 
 [profile.arb_sepolia]
 chainId = 421614
-riscZeroVerifierAddress = "0x3a54A45E44a71020Bd0Af42063B9f23e8b9E387D"
+riscZeroVerifierAddress = "0xB6B54e6FA7b1eF3192B7c5251cCC90712FEE9008"
 # You can add additional profiles here
 # [profile.custom]
 # chainId = 11155111
