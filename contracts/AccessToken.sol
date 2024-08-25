@@ -22,6 +22,7 @@ contract AccessToken is ERC1155 {
     mapping (uint256 tokenId => address owner) public tokenOwner;
     mapping (address dpAddr => bytes32 attributesHash) internal dpAttrHash;
     mapping (address doAddr => uint256[] tokenIds) private _ownerTokens;
+    mapping (bytes32 attributesHash => bool hasMinted) private dpHasMinted;
 
     event TokenCreated(uint256 tokenId, address owner);
     event AccessTokenMinted(address indexed dpAddress, uint256 tokenId);
@@ -82,14 +83,17 @@ contract AccessToken is ERC1155 {
         uint256 tokenId,
         bytes32 attributesHash
     ) public {
+        bytes32 nullifier = keccak256(abi.encodePacked(msg.sender, tokenId));
         require(tokenOwner[tokenId] != address(0), "TokenId has not been created");
         require(dpAttrHash[msg.sender] != bytes32(0), "Data processor has not been registered");
         require(dpAttrHash[msg.sender] == attributesHash, "Invalid attributes hash");
+        require(!dpHasMinted[nullifier], "Token has been minted");
 
         // tokenId is committed in the proof
         bytes memory journal = abi.encode(tokenId);
         verifier.verify(seal, imageId, sha256(journal));
         _mint(msg.sender, tokenId, 1, "");
+        dpHasMinted[nullifier] = true;
         emit AccessTokenMinted(msg.sender, tokenId);
     }
 
