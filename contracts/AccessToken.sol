@@ -5,12 +5,10 @@ import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {ImageID} from "./ImageID.sol"; // auto-generated
 
 import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
-import '@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol';
-import '@openzeppelin/contracts/utils/ReentrancyGuard.sol'; // to prevent reentrancy attack
 import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 
 /// @title Access token contract for ZK CP-ABE system
-contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
+contract AccessToken is ERC1155 {
     /// RISC Zero verifier contract address.
     IRiscZeroVerifier public immutable verifier;
     
@@ -26,7 +24,7 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
     mapping (address doAddr => uint256[] tokenIds) private _ownerTokens;
 
     event TokenCreated(uint256 tokenId, address owner);
-    event AccessTokenMinted(address indexed dpAddress, uint256 tokenId, bytes seal);
+    event AccessTokenMinted(address indexed dpAddress, uint256 tokenId);
     event DPRegistered(address indexed dpAddress, bytes32 attributesHash);
 
     uint256 private _tokenIdCounter;
@@ -81,47 +79,34 @@ contract AccessToken is ERC1155, ERC1155Burnable, ReentrancyGuard {
     /// @dev mint the access token for data processor
     function mintAccessTokenForDP(
         bytes calldata seal,
-        bytes32 attributesHash,
         uint256 tokenId,
-        string memory cid
-    ) public nonReentrant {
-        // should pass the verification first
+        bytes32 attributesHash
+    ) public {
         require(tokenOwner[tokenId] != address(0), "TokenId has not been created");
-        require(checkCidEquality(tokenId, cid), "TokenId and cid does not match!");
-        require(dpAttrHash[msg.sender] == attributesHash, "Attributes does not match!");
+        require(dpAttrHash[msg.sender] != bytes32(0), "Data processor has not been registered");
+        require(dpAttrHash[msg.sender] == attributesHash, "Invalid attributes hash");
 
-        bytes memory journal = abi.encode(cid);
+        // tokenId is committed in the proof
+        bytes memory journal = abi.encode(tokenId);
         verifier.verify(seal, imageId, sha256(journal));
         _mint(msg.sender, tokenId, 1, "");
-        emit AccessTokenMinted(msg.sender, tokenId, journal);
+        emit AccessTokenMinted(msg.sender, tokenId);
     }
 
     /// @dev get balance for data processor
     function getDPBalance(
+        address dpAddr,
         uint256 tokenId,
         bytes memory signature
     ) public view returns (bool) {
         address signer = ECDSA.recover(keccak256(abi.encodePacked(tokenId)), signature);
         require(signer == msg.sender, "Invalid signature"); // only the holder can check the balance
-        return balanceOf(msg.sender, tokenId) > 0;
+        return balanceOf(dpAddr, tokenId) > 0;
     }
 
 
     /// @dev get all tokens for an owner
     function getOwnerTokens(address owner) public view returns (uint256[] memory) {
         return _ownerTokens[owner];
-    }
-
-    /// helper functions
-    function checkCidEquality(
-        uint256 tokenId, 
-        string memory cid
-    ) private view returns (bool) {
-        string memory storedCid = tokenIpfsHash[tokenId];
-        // comparing the length to optimize the gas cost
-        if (bytes(storedCid).length != bytes(cid).length) {
-            return false;
-        }
-        return keccak256(abi.encodePacked(storedCid)) == keccak256(abi.encodePacked(cid));
     }
 }
