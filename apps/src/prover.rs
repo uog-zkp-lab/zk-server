@@ -42,7 +42,10 @@ pub fn generate_proof(
     let journal = receipt.journal.bytes.clone();
     let recovered_token_id = U256::abi_decode(&journal, true).context("decoding journal data")?;
     println!("Recovered token ID: {}", recovered_token_id);
-    assert!(recovered_token_id == token_id, "Recovered token ID does not match");
+    assert!(
+        recovered_token_id == token_id,
+        "Recovered token ID does not match"
+    );
 
     Ok((seal, recovered_token_id))
 }
