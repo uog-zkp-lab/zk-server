@@ -83,7 +83,6 @@ contract AccessToken is ERC1155 {
         bytes32 attributesHash
     ) public {
         bytes32 nullifier = keccak256(abi.encodePacked(msg.sender, tokenId));
-        require(tokenOwner[tokenId] != address(0), "TokenId has not been created");
         require(dpAttrHash[msg.sender] != bytes32(0), "Data processor has not been registered");
         require(dpAttrHash[msg.sender] == attributesHash, "Invalid attributes hash");
         require(!dpHasMinted[nullifier], "Token has been minted");
