@@ -6,7 +6,7 @@ use std::time::Duration;
 use std::time::Instant;
 use tokio::time::timeout;
 
-fn generate_random_attributes(num_attributes: usize) -> String {
+fn generate_attributes(num_attributes: usize) -> String {
     let attributes: Vec<serde_json::Value> = (0..num_attributes)
         .map(|i| {
             let key = format!("Attr{}", i);
@@ -34,7 +34,7 @@ pub async fn test_proof_generation_performance() {
         let mut success_count = 0;
 
         for _ in 0..iterations {
-            let attributes = generate_random_attributes(num_attributes);
+            let attributes = generate_attributes(num_attributes);
             let policy = r#""Attr1:Value1""#;
             let token_id = U256::from(1234); // Example token ID
 
