@@ -2,7 +2,6 @@ pub mod tests {
     use crate::prover;
     use alloy_primitives::U256;
     use dotenv::dotenv;
-    use rand::Rng;
     use serde_json::json;
     use std::time::Duration;
     use std::time::Instant;
