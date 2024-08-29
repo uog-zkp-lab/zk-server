@@ -54,3 +54,36 @@ Recovered token ID: 107183960177316301302241880581336344215219240409990108434358
 Proof generated
 Sending proof back...
 ```
+
+---
+
+## Tests
+
+There are two types of tests in the project.
+
+### Performance tests
+
+1. Performance test - proof generating time
+    `cargo test tests::test_proof_generation_performance --release -- --nocapture` to run performance test to measure the time of generating proof in different size of attributes.
+
+    Result would be like:
+
+    ```shell
+    running 1 test
+    test tests::performance_tests::tests::test_proof_generation_performance has been running for over 60 seconds
+    Average time taken for 10 attributes: 33.03 seconds
+    Average time taken for 50 attributes: 32.77 seconds
+    Average time taken for 100 attributes: 36.44 seconds
+    Average time taken for 500 attributes: 38.42 seconds
+    Average time taken for 1000 attributes: 43.74 seconds
+    Average time taken for 5000 attributes: 77.42 seconds
+    Average time taken for 10000 attributes: 89.21 seconds
+    Average time taken for 20000 attributes: 86.16 seconds
+    Average time taken for 25000 attributes: 79.40 seconds
+    Average time taken for 30000 attributes: 77.57 seconds
+    Average time taken for 35000 attributes: 78.69 seconds
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3629.85s
+        Running unittests src/bin/server.rs (target/release/deps/server-a06c265b53e1a975)
+    ```
+
+    It is expected to run in a long time, so don't be panic if it runs for too long.
